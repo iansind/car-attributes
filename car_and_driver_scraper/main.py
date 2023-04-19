@@ -26,8 +26,9 @@ driver.implicitly_wait(3)
 
 
 # Scrapes the given webpage and adds the attributes to the master dictionary.
-def scrape_stats(page, make, model):
-    attrs = {'make': [make], 'model': [model]}
+def scrape_stats(page, make, model, style, trim):
+    #attrs = {'make': [make], 'model': [model], 'style': [style], 'trim': [trim]}
+    attrs = {'style': [style], 'trim': [trim]}
     attrs['year'] = page.find_element(By.XPATH, '//*[@id="yearSelect"]/option[2]').text
     attrs['price'] = page.find_element(By.XPATH, '//*[@id="main-content"]/div[2]/div[3]/div[2]/div[2]').text
     attrs = pd.DataFrame.from_dict(attrs)
@@ -40,123 +41,83 @@ def scrape_stats(page, make, model):
 def get_styles(page):
     page.find_element(By.XPATH, '//*[@id="styleSelect"]').click()
     style_dropdown = driver.find_element(By.XPATH, '//*[@id="styleSelect"]')
-    time.sleep(1)
+    time.sleep(2)
     styles = [style.text for style in style_dropdown.find_elements(By.TAG_NAME, 'option')]
     styles.pop(0)
+    page.find_element(By.XPATH, '//*[@id="styleSelect"]').click()
     return styles
 
 
 # Get a list of the possible trims.
 def get_trims(page):
     page.find_element(By.XPATH, '//*[@id="trimSelect"]').click()
-    time.sleep(1)
+    time.sleep(2)
     trim_dropdown = page.find_element(By.XPATH, '//*[@id="trimSelect"]')
     trims = [trim.text for trim in trim_dropdown.find_elements(By.TAG_NAME, 'option')]
     trims.pop(0)
+    page.find_element(By.XPATH, '//*[@id="trimSelect"]').click()
     return trims
 
 
-for make_model in squashed[:4]:
+def new_style_init(page, make, model, curr_style):
+    curr_trims = get_trims(page)
+    scrape_stats(page, make, model, curr_style, curr_trims.pop(0))
+
+    if len(curr_trims) > 0:
+        i = 3
+        while len(curr_trims) > 0:
+            page.find_element(By.XPATH, '//*[@id="trimSelect"]').click()
+
+            path = '//*[@id="trimSelect"]/option[' + str(i) + ']'
+            page.find_element(By.XPATH, path).click()
+            time.sleep(2)
+
+            scrape_stats(page, make, model, curr_style, curr_trims.pop(0))
+
+            time.sleep(random.uniform(8.5, 9.6))
+
+            i += 1
+
+
+for make_model in squashed[2:3]:
     make = make_model[0]
     model = make_model[1]
     url = 'https://www.caranddriver.com/' + make + '/' + model + '/specs'
     driver.get(url)
-    curr_trims = get_trims(driver)
+
     curr_styles = get_styles(driver)
-    scrape_stats(driver, make, model)
+    curr_style = curr_styles.pop(0)
 
-    if len(curr_trims) > 1:
-        driver.find_element(By.XPATH, '//*[@id="trimSelect"]').click()
-        for i in range(3, len(curr_trims) + 2):
-            driver.find_element(By.XPATH, '//*[@id="trimSelect"]').click()
+    new_style_init(driver, make, model, curr_style)
 
-            path = '//*[@id="trimSelect"]/option[' + str(i) + ']'
+    time.sleep(random.uniform(8.5, 9.6))
+
+    if len(curr_styles) > 0:
+        i = 3
+        while len(curr_styles) > 0:
+            driver.find_element(By.XPATH, '//*[@id="styleSelect"]').click()
+
+            path = '//*[@id="styleSelect"]/option[' + str(i) + ']'
             driver.find_element(By.XPATH, path).click()
             time.sleep(2)
 
-            scrape_stats(driver, make, model)
+            driver.find_element(By.XPATH, '//*[@id="trimSelect"]').click()
+            driver.find_element(By.XPATH, '//*[@id="trimSelect"]/option[2]').click()
 
+            new_style_init(driver, make, model, curr_styles.pop(0))
 
+            i += 1
 
-
-
-    print(curr_styles, curr_trims)
-    time.sleep(random.uniform(10.5, 12.6))
-
-    # Get page info
-    # Go through the trims and get page info
-    # Move onto the next style
-    # Get page info
-    # Move through the trims
-
-
-
-'''driver.find_element(By.XPATH, '//*[@id="trimSelect"]').click()
-time.sleep(1)
-trim_dropdown = driver.find_element(By.XPATH, '//*[@id="trimSelect"]')
-trims = [trim.text for trim in trim_dropdown.find_elements(By.TAG_NAME, 'option')]'''
-#trims.pop(0)
-#trims.sort()
-#print(trims)
 
 print(all_cars)
 
+# Pickles the dataframe.
+with open('all_cars.pkl', 'wb') as f:
+    pickle.dump(all_cars, f)
 
+with open('all_cars.pkl', 'rb') as f:
+    loaded_df = pickle.load(f)
 
-# Do this if more than one trim level.
-
-'''
-driver.find_element(By.XPATH, '//*[@id="trimSelect"]').click()
-for i in range(3, len(trims)+1):
-    driver.find_element(By.XPATH, '//*[@id="trimSelect"]').click()
-
-    path = '//*[@id="trimSelect"]/option[' + str(i) + ']'
-    driver.find_element(By.XPATH, path).click()
-    time.sleep(random.uniform(1.5, 2.6))
-    # run def to scrape page
-    '''
-
-# //*[@id="main-content"]/div[3]/div/div[5]
-# //*[@id="main-content"]/div[3]/div/div[6]
-# //*[@id="main-content"]/div[3]/div/div[6]/h3/button
-
-
-
-
-'''driver = webdriver.Chrome()
-driver.get('https://www.caranddriver.com/')
-# Waits if a target to click isn't yet available.
-driver.implicitly_wait(3)
-
-# Sleeps are important to allow for dropdown fields to load.
-# Clicks on the 'Makes and Models' button to make the dropdown available.
-driver.find_element(By.XPATH, '//*[@id="__next"]/div/nav/div[1]/div[1]/button').click()
-time.sleep(2)
-# Clicks on the 'Make' dropdown to populate options of car makes.
-driver.find_element(By.XPATH, '//*[@id="modal-root"]/div[2]/div/div[2]/select').click()
-time.sleep(2)
-# Obtains the populated 'Make' element and converts to a list.
-dropdown1 = driver.find_element(By.XPATH, '//*[@id="modal-root"]/div[2]/div/div[2]/select')
-makes = [make.get_attribute('value') for make in dropdown1.find_elements(By.TAG_NAME, 'option')]
-
-# Generates list of tuples in the form (make, model) for each available combination.
-# Iterates over each make to populate its associated models.
-makes_models = []
-for i in range(2, len(makes)+1):
-    # Generation of element location.
-    path = '//*[@id="modal-root"]/div[2]/div/div[2]/select/option[' + str(i) + ']'
-    driver.find_element(By.XPATH, path).click()
-    time.sleep(2)
-
-    # Performs formatting that will be necessary when generating URLs.
-    dropdown2 = driver.find_element(By.XPATH, '//*[@id="modal-root"]/div[2]/div/div[3]/select')
-    curr_models = [(makes[i-1], model.get_attribute('value').replace(' ', '-').lower()) for model in
-                   dropdown2.find_elements(By.TAG_NAME, 'option') if model.get_attribute('value') != '0']
-    makes_models.append(curr_models)
-
-# Count to ensure values were not dropped. Compare to repeated valued for consistency.
-s = 0
-for make in makes_models:
-    print(make)
-    s += len(make)'''
-
+# Checks the integrity of the saved file.
+integrity = '' if loaded_df == all_cars else 'not '
+print(f'The saved file is {integrity}valid.')
