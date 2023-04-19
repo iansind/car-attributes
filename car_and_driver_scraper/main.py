@@ -64,16 +64,18 @@ def scrape_stats(page, make, model, style, trim):
                  'price': page.find_element(By.XPATH, '//*[@id="main-content"]/div[2]/div[3]/div[2]/div[2]').text}
 
         # Some pages start on an earlier index; this identifies and adjusts them.
-        lower = 3
-        upper = 18
-        if page.find_element(By.XPATH, '//*[@id="main-content"]/div[3]/div/div[2]/div'):
+        lower = 2
+        upper = 17
+        if page.find_element(By.XPATH, '//*[@id="main-content"]/div[3]/div/div[1]').text:
             lower -= 1
             upper -= 1
+
         # Iterates through the locations where data will be expected.
         for i in range(lower, upper):
             branch_loc = '//*[@id="main-content"]/div[3]/div/div[' + str(i) + ']/div'
             branch_items = page.find_element(By.XPATH, branch_loc)
             items = [item.text for item in branch_items.find_elements(By.TAG_NAME, 'div')]
+            # print(make, model, style, trim, items)
 
             attrs[items[1]] = items[2]
 
@@ -215,3 +217,5 @@ print('No crash results: ', no_crash_results)
 # Pickles the dataframe.
 with open('all_cars.pkl', 'wb') as f:
     pickle.dump(all_cars, f)
+
+all_cars.to_csv('all_cars.csv')
