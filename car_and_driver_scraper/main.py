@@ -87,7 +87,7 @@ def scrape_stats(page, make, model, style, trim):
         # Finds the location of crash test results, if present, and scrapes them.
         # If not present, added to 'no_crash_results' list.
         try:
-            for i in range(18,30):
+            for i in range(upper, 30):
                 crash_loc = '//*[@id="main-content"]/div[3]/div/div[' + str(i) + ']/div'
                 crash_items = page.find_element(By.XPATH, crash_loc)
                 items = [item.text for item in crash_items.find_elements(By.TAG_NAME, 'div')]
