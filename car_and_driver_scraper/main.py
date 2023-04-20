@@ -51,7 +51,7 @@ driver = webdriver.Chrome(options=chrome_options)
 # driver = webdriver.Chrome()
 
 # Waits if a target to click isn't yet available.
-driver.implicitly_wait(3)
+driver.implicitly_wait(60)
 
 
 # Scrapes the given webpage and adds the attributes to the master dictionary.
@@ -120,6 +120,8 @@ def scrape_stats(page, make, model, style, trim):
         global not_added
         not_added.append(make + ' ' + model + ' ' + style + ' ' + trim)
 
+    time.sleep(random.uniform(7, 12))
+
     return None
 
 
@@ -163,13 +165,16 @@ def new_style_init(page, make, model, curr_style):
 
             scrape_stats(page, make, model, curr_style, curr_trims.pop(0))
 
-            time.sleep(random.uniform(6.5, 7.6))
-
             i += 1
 
 
-count = 1
-for make_model in squashed[:5]:
+# These pages have unexpected hangups and are skipped for the time being.
+problem_pages = [('buick', 'regal')]
+
+for make_model in squashed[133:]:
+    # Skips over problematic pages.
+    if make_model in problem_pages:
+        continue
     make = make_model[0]
     model = make_model[1]
     url = 'https://www.caranddriver.com/' + make + '/' + model + '/specs'
@@ -178,7 +183,7 @@ for make_model in squashed[:5]:
 
     # If the page is blank, record the make and model and move on.
     try:
-        curr_styles = get_styles(driver)
+        curr_styles = get_styles(driver) # 4 seconds sleep
         curr_style = curr_styles.pop(0)
     except:
         not_added.append(make + ' ' + model)
@@ -186,8 +191,7 @@ for make_model in squashed[:5]:
 
     new_style_init(driver, make, model, curr_style)
 
-    time.sleep(random.uniform(6.1, 6.9))
-
+    # If there are remaining styles, moves to the first option of the next style in the list.
     if len(curr_styles) > 0:
         i = 3
         while len(curr_styles) > 0:
@@ -198,17 +202,24 @@ for make_model in squashed[:5]:
             time.sleep(2)
 
             driver.find_element(By.XPATH, '//*[@id="trimSelect"]').click()
+            time.sleep(2)
+
             driver.find_element(By.XPATH, '//*[@id="trimSelect"]/option[2]').click()
+            time.sleep(2)
 
             new_style_init(driver, make, model, curr_styles.pop(0))
 
             i += 1
 
     # Every 10 makes and models, the data is saved.
-    if count % 10 == 0:
+    # Can adjust frequency or move up in code as some checkpoints will be skipped due to blank pages.
+    if squashed.index(make_model) % 10 == 0:
         with open('all_cars.pkl', 'wb') as f:
             pickle.dump(all_cars, f)
-    count += 1
+
+        print('Last saved index: ', squashed.index(make_model))
+        print('Not added: ', not_added)
+        print('No crash results: ', no_crash_results)
 
 print(all_cars)
 print('Not added: ', not_added)
@@ -218,4 +229,5 @@ print('No crash results: ', no_crash_results)
 with open('all_cars.pkl', 'wb') as f:
     pickle.dump(all_cars, f)
 
+# Saves the dataframe as a CSV file.
 all_cars.to_csv('all_cars.csv')
