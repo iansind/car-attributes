@@ -170,9 +170,13 @@ def new_style_init(page, make, model, curr_style):
 
 # These pages have unexpected hangups and are skipped for the time being.
 problem_pages = [('buick', 'regal'), ('volkswagen', 'taos')]
+# These pages have variance in formatting and were manually added.
+stragglers = [('toyota', 'tacoma-2023'), ('ford', 'expedition'), ('cadillac', 'escalade-escalade-esv'),
+              ('gmc', 'yukon-yukon-xl'), ('hyundai', 'santa-fe'), ('hyundai', 'kona'), ('kia', 'forte'),
+              ('lincoln', 'navigator'), ('mini', 'cooper-clubman-s'), ('mini', 'cooper-countryman-s-2024')]
+squashed = squashed + stragglers
 
-for make_model in squashed:
-
+for make_model in squashed[858:]:
     # Every 5 makes and models, the data is saved.
     # Can adjust frequency or move up in code as some checkpoints will be skipped due to blank pages.
     if squashed.index(make_model) % 5 == 1:
