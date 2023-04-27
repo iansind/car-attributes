@@ -120,7 +120,7 @@ def scrape_stats(page, make, model, style, trim):
         global not_added
         not_added.append(make + ' ' + model + ' ' + style + ' ' + trim)
 
-    time.sleep(random.uniform(7, 12))
+    time.sleep(random.uniform(7, 9))
 
     return None
 
@@ -169,12 +169,24 @@ def new_style_init(page, make, model, curr_style):
 
 
 # These pages have unexpected hangups and are skipped for the time being.
-problem_pages = [('buick', 'regal')]
+problem_pages = [('buick', 'regal'), ('volkswagen', 'taos')]
 
-for make_model in squashed[133:]:
+for make_model in squashed:
+
+    # Every 5 makes and models, the data is saved.
+    # Can adjust frequency or move up in code as some checkpoints will be skipped due to blank pages.
+    if squashed.index(make_model) % 5 == 1:
+        with open('all_cars.pkl', 'wb') as f:
+            pickle.dump(all_cars, f)
+
+        print('Last saved index: ', squashed.index(make_model)-1)
+        print('Not added: ', not_added)
+        print('No crash results: ', no_crash_results)
+
     # Skips over problematic pages.
     if make_model in problem_pages:
         continue
+
     make = make_model[0]
     model = make_model[1]
     url = 'https://www.caranddriver.com/' + make + '/' + model + '/specs'
@@ -202,7 +214,7 @@ for make_model in squashed[133:]:
             time.sleep(2)
 
             driver.find_element(By.XPATH, '//*[@id="trimSelect"]').click()
-            time.sleep(2)
+            time.sleep(4)
 
             driver.find_element(By.XPATH, '//*[@id="trimSelect"]/option[2]').click()
             time.sleep(2)
@@ -210,16 +222,6 @@ for make_model in squashed[133:]:
             new_style_init(driver, make, model, curr_styles.pop(0))
 
             i += 1
-
-    # Every 10 makes and models, the data is saved.
-    # Can adjust frequency or move up in code as some checkpoints will be skipped due to blank pages.
-    if squashed.index(make_model) % 10 == 0:
-        with open('all_cars.pkl', 'wb') as f:
-            pickle.dump(all_cars, f)
-
-        print('Last saved index: ', squashed.index(make_model))
-        print('Not added: ', not_added)
-        print('No crash results: ', no_crash_results)
 
 print(all_cars)
 print('Not added: ', not_added)
