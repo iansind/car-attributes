@@ -4,4 +4,4 @@ Web scraper that generates a dataset of car specs using caranddriver.com. Initia
 
 The main file takes quite a long time to run due to the requested web crawler 10 second delay, so the scraping can be broken into chunks or run in the background. Expected total runtime is on the order of 15 hours, with large error bars. Checkpoints are made at regular intervals to ensure data is saved if there is any issue with connection. 
 
-Work in progress. 
+The web scraper is complete and functional, but the analysis is a work in progress. 
