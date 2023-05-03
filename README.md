@@ -5,3 +5,11 @@ Web scraper that generates a dataset of car specs using caranddriver.com. Initia
 The main file takes quite a long time to run due to the requested web crawler 10 second delay, so the scraping can be broken into chunks or run in the background. Expected total runtime is on the order of 15 hours, with large error bars. Checkpoints are made at regular intervals to ensure data is saved if there is any issue with connection. 
 
 The web scraper is complete and functional, but the analysis is a work in progress. 
+
+In its current state, visualization can be drawn from the data, including the following representation of crash safety ratings.
+
+![image](https://user-images.githubusercontent.com/108632228/235813342-52cd2620-a6d8-4c74-9e76-9d9cabe9438b.png)
+
+And the following representation of CO<sub>2</sub> emissions as they related to the price of the vehicle. 
+
+![image](https://user-images.githubusercontent.com/108632228/235814387-71755bda-be85-4e1d-8e71-f68b508a7a35.png)
